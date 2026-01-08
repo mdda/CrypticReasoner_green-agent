@@ -24,16 +24,26 @@ def main():
     # See: https://a2a-protocol.org/latest/tutorials/python/3-agent-skills-and-card/
     
     skill = AgentSkill(
-        id="",
-        name="",
-        description="",
-        tags=[],
-        examples=[]
+        id="cryptic_setter",
+        name="Cryptic Crossword Setter",
+        description="Emits cryptic crossword questions, and mark answers",
+        tags=["crypticreasoner"],
+        examples=["""
+{
+  "participants": {
+    "cryptic_solver": "https://cryptic-solver.example.com:443"
+  },
+  "config": {
+    "question": "Initially, babies are naked (4)",
+    "answer": "BARE"
+  }
+}
+"""]
     )
 
     agent_card = AgentCard(
-        name="",
-        description="",
+        name="Cryptic Setter",
+        description="Set a Cryptic Crossword question; allow for dictionary tool use; and finally mark the answer received",
         url=args.card_url or f"http://{args.host}:{args.port}/",
         version='1.0.0',
         default_input_modes=['text'],

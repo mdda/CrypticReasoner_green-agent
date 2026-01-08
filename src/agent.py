@@ -1,3 +1,4 @@
+import logging
 from typing import Any
 from pydantic import BaseModel, HttpUrl, ValidationError
 from a2a.server.tasks import TaskUpdater
@@ -6,22 +7,34 @@ from a2a.utils import get_message_text, new_agent_text_message
 
 from messenger import Messenger
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("cryptic_setter")
 
 class EvalRequest(BaseModel):
     """Request format sent by the AgentBeats platform to green agents."""
     participants: dict[str, HttpUrl] # role -> agent URL
     config: dict[str, Any]
+    
+
+class CrypticScore(BaseModel):
+    used_tool: bool = False
+    answer_in_search: bool = False
+    answer_correct: bool = False
 
 
 class Agent:
     # Fill in: list of required participant roles, e.g. ["pro_debater", "con_debater"]
-    required_roles: list[str] = []
+    required_roles: list[str] = ["cryptic_solver"]
     # Fill in: list of required config keys, e.g. ["topic", "num_rounds"]
     required_config_keys: list[str] = []
 
     def __init__(self):
         self.messenger = Messenger()
         # Initialize other state here
+
+        print("TODO : Build vector dictionary if necessary")
+        print("TODO : Load vector dictionary")
+
 
     def validate_request(self, request: EvalRequest) -> tuple[bool, str]:
         missing_roles = set(self.required_roles) - set(request.participants.keys())
@@ -35,6 +48,7 @@ class Agent:
         # Add additional request validation here
 
         return True, "ok"
+
 
     async def run(self, message: Message, updater: TaskUpdater) -> None:
         """Implement your agent logic here.
