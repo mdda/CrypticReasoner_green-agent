@@ -59,7 +59,7 @@ class Agent:
 
         Use self.messenger.talk_to_agent(message, url) to call other agents.
         """
-        print(f"Agent.run {message=}")  # NOT CALLED YET...
+        print(f"Agent.run launch! {message=}")  # NOT CALLED YET...
 
         input_text = get_message_text(message)
 
@@ -73,6 +73,8 @@ class Agent:
             await updater.reject(new_agent_text_message(f"Invalid request: {e}"))
             return
 
+        ## At this point, the Green Agent (evaluator) is "running", with configuration 'request.config'
+
         # Replace example code below with your agent logic
         # Use request.participants to get participant agent URLs by role
         # Use request.config for assessment parameters
@@ -80,9 +82,15 @@ class Agent:
         await updater.update_status(
             TaskState.working, new_agent_text_message("Thinking...")
         )
+
+        # Load the tasks specified in the config...
+
+        # Iterate through each task
+
+        
         await updater.add_artifact(
             parts=[
-                Part(root=TextPart(text="The agent performed well.")),
+                Part(root=TextPart(text="The agent completed the tasks.")),
                 Part(root=DataPart(data={
                     # structured assessment results
                 }))

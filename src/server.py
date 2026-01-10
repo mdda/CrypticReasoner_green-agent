@@ -28,14 +28,17 @@ def main():
         name="Cryptic Crossword Setter",
         description="Emits cryptic crossword questions, and mark answers",
         tags=["crypticreasoner"],
+        # See : https://github.com/RDI-Foundation/agentbeats-tutorial/blob/main/scenarios/tau2/tau2_evaluator.py#L452
+        #  Sending this JSON via the A2A inspector, launches the Green Agent ...
         examples=["""
 {
   "participants": {
     "cryptic_solver": "https://cryptic-solver.example.com:443"
   },
   "config": {
-    "question": "Initially, babies are naked (4)",
-    "answer": "BARE"
+    "dataset": "cryptonite",
+    "split": "validation",
+    "num_tasks": 10
   }
 }
 """]
