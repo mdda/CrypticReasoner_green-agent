@@ -59,6 +59,8 @@ class Agent:
 
         Use self.messenger.talk_to_agent(message, url) to call other agents.
         """
+        print(f"Agent.run {message=}")  # NOT CALLED YET...
+
         input_text = get_message_text(message)
 
         try:

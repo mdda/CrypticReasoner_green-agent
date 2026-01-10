@@ -9,8 +9,7 @@ dependencies = [
     "pydantic>=2.12.5",
     "uvicorn>=0.38.0",
     # This does not need dotenv / genai access
-    # dictionary tool requires vector store...
-    
+    # OTOH, the dictionary tool requires vector store...
 ]
 
 [project.optional-dependencies]
