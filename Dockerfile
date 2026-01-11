@@ -12,7 +12,9 @@ RUN \
     uv sync --locked
 
 # Run setup script (this is ugly...)
-RUN pushd src && ./setup.sh && popd
+WORKDIR /home/agent/src
+RUN ./setup.sh
+WORKDIR /home/agent
 
 ENTRYPOINT ["uv", "run", "src/server.py"]
 CMD ["--host", "0.0.0.0"]
