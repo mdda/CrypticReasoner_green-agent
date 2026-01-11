@@ -17,7 +17,7 @@ if [ -d "$CRYPTONITE_DIR" ]; then
     echo "To re-download, remove the directory first: rm -rf $CRYPTONITE_DIR\n"
     #exit 0
 else
-    wget 'https://github.com/aviaefrat/cryptonite/blob/main/data/cryptonite-official-split.zip?raw=true'
+    wget --no-verbose 'https://github.com/aviaefrat/cryptonite/blob/main/data/cryptonite-official-split.zip?raw=true'
     unzip 'cryptonite-official-split.zip?raw=true' -d $CRYPTONITE_DIR
     rm 'cryptonite-official-split.zip?raw=true'
 fi
@@ -32,7 +32,7 @@ if [ -f "$DICTIONARY_FILE" ]; then
 else
     #wget https://cfajohnson.com/wordfinder/UKACD17.tgz  # No longer available...
     #tar -xzf ./UKACD17.tgz UKACD17.TXT
-    wget https://www.quinapalus.com/UKACD17.txt.gz  # https://www.quinapalus.com/qxwdownload.html
+    wget --no-verbose https://www.quinapalus.com/UKACD17.txt.gz  # https://www.quinapalus.com/qxwdownload.html
     gunzip UKACD17.txt.gz
     mv UKACD17.txt $DICTIONARY_FILE
 fi
@@ -44,11 +44,14 @@ if [ -f "$EMBEDDINGS_FILE" ]; then
     echo "To re-download, remove the file first: rm -f $EMBEDDINGS_FILE\n"
     #exit 0
 else
-    uv run setup-resize-embeddings.py
-    rm -f cc.en.300.bin  # This 7B file can be regenerated...
+    #uv run setup-resize-embeddings.py
+    #rm -f cc.en.300.bin  # This 7B file can be regenerated...
+    uv run hf download mdda-rdai/fasttext-cc.en.100.bin cc.en.100.bin.gz --local-dir=. --cache-dir=.
+    gunzip cc.en.100.bin.gz
 fi
 # The embeddings will be built when the dictionary is first used
 
+ls -la
 
 echo ""
 echo "Setup complete! cryptonite data is now available at:"
