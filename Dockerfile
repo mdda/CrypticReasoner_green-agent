@@ -11,6 +11,10 @@ RUN \
     --mount=type=cache,target=/home/agent/.cache/uv,uid=1000 \
     uv sync --locked
 
+RUN id -a
+RUN ls -l 
+RUN ls -l src
+
 # Run setup script (this is ugly...)
 WORKDIR /home/agent/src
 RUN ./setup.sh
