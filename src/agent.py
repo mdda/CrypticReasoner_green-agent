@@ -30,6 +30,20 @@ class CrypticScore(BaseModel):
     answer_correct: bool = False
 
 
+# Do these loads globally, since they are static (don't depend on Agent launches)
+print("Loading Cryptic Crossword data")
+
+t0=time.time()
+vector_embedder = cryptic_corpora.VectorEmbedder(model_file="./src/cc.en.100.bin")
+print(f"Loaded Vector Embedding model in {(time.time()-t0):.2f}sec")
+
+t0=time.time()
+crossword_dictionary = cryptic_corpora.CrosswordDictionary(
+    vector_embedder, crossword_dictionary_file='./src/UKACD.txt', strip_header=False)
+print(f"Loaded Dictionary in {(time.time()-t0):.2f}sec")
+
+
+
 
 class Agent:
     # Fill in: list of required participant roles, e.g. ["pro_debater", "con_debater"]
@@ -42,16 +56,7 @@ class Agent:
 
         # Initialize other state here
 
-        print("Loading Cryptic Crossword data")
-
-        t0=time.time()
-        self.embedder = cryptic_corpora.VectorEmbedder(model_file="./src/cc.en.100.bin")
-        print(f"Loaded Vector Embedding model in {(time.time()-t0):.2f}sec")
-
-        t0=time.time()
-        self.crossword_dictionary = cryptic_corpora.CrosswordDictionary(
-            self.embedder, crossword_dictionary_file='./src/UKACD.txt', strip_header=False)
-        print(f"Loaded Dictionary in {(time.time()-t0):.2f}sec")
+        # Main dictionary / embedding model are loaded globally (above)
 
 
     def validate_request(self, request: EvalRequest) -> tuple[bool, str]:
