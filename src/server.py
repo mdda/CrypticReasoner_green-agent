@@ -14,7 +14,7 @@ from executor import Executor
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Run the A2A agent.")
+    parser = argparse.ArgumentParser(description="Run the CrypticReasoner-setter A2A agent.")
     parser.add_argument("--host", type=str, default="127.0.0.1", help="Host to bind the server")
     parser.add_argument("--port", type=int, default=9009, help="Port to bind the server")
     parser.add_argument("--card-url", type=str, help="URL to advertise in the agent card")
@@ -37,8 +37,9 @@ def main():
   },
   "config": {
     "dataset": "cryptonite",
-    "split": "validation",
-    "num_tasks": 10
+    "split": "val",
+    "num_tasks": 1,
+    "seed": 42
   }
 }
 """]

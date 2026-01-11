@@ -19,18 +19,6 @@ pyproject.toml    # Python dependencies
    └─ test-and-publish.yml # CI workflow
 ```
 
-## Getting Started
-
-1. **Create your repository** - Click "Use this template" to create your own repository from this template
-
-2. **Implement your agent** - Add your agent logic to [`src/agent.py`](src/agent.py)
-
-3. **Configure your agent card** - Fill in your agent's metadata (name, skills, description) in [`src/server.py`](src/server.py)
-
-4. **Write your tests** - Add custom tests for your agent in [`tests/test_agent.py`](tests/test_agent.py)
-
-For a concrete example of implementing a green agent using this template, see this [draft PR](https://github.com/RDI-Foundation/green-agent-template/pull/3).
-
 ## Running Locally
 
 ```bash
@@ -62,6 +50,13 @@ anticipating the purple-agent will also be a sibling)
 # Run both frontend and backend with a single command
 bash scripts/run.sh
 ```
+
+
+
+
+
+
+
 
 
 ## Testing
@@ -102,3 +97,4 @@ ghcr.io/<your-username>/<your-repo-name>:1
 Once the workflow completes, find your Docker image in the Packages section (right sidebar of your repository). Configure the package visibility in package settings.
 
 > **Note:** Organization repositories may need package write permissions enabled manually (Settings → Actions → General). Version tags must follow [semantic versioning](https://semver.org/) (e.g., `v1.0.0`).
+
