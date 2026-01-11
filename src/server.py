@@ -38,7 +38,7 @@ def main():
   "config": {
     "dataset": "cryptonite",
     "split": "val",
-    "num_tasks": 1,
+    "num_tasks": 2,
     "seed": 42
   }
 }
