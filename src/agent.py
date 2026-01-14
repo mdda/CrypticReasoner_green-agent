@@ -33,6 +33,86 @@ class CrypticScore(BaseModel):
 ANSWER_ACTION_NAME = "answer"
 SEARCH_ACTION_NAME = "dictionary_search"
 
+task_evaluation_preamble=f"""Cryptic Crossword clue answering
+
+You may use both reasoning and the following dictionary tool to answer the given clues:
+
+{json.dumps({
+    "type": "function",
+    "function": {
+        "name": SEARCH_ACTION_NAME,
+        "description": "Look up nearest matches to a given definition, given constraints.",
+        "parameters": {
+            "properties": {
+                "definition": {
+                    "description": "The search term, which the responses will be close to.",
+                    "title": "Definition",
+                    "type": "string"
+                },
+                "pattern": {
+                    "description": "The format required for each response in standard notation - e.g. (8) for eight-letter responses.",
+                    "title": "Pattern",
+                    "type": "string"
+                },
+                "substrings": {
+                    "description": "A comma-separated list of strings that must be included in each response.",
+                    "title": "Substrings",
+                    "type": "string"
+                }
+            },
+            "required": ["definition"],
+            "title": "parameters",
+            "type": "object"
+        }
+    }
+}, indent=2)}
+
+The final answer should be returned using the following tool call:
+
+{json.dumps({
+    "type": "function",
+    "function": {
+        "name": ANSWER_ACTION_NAME,
+        "description": "Respond directly to the user with a message instead of calling a tool.",
+        "parameters": {
+            "properties": {
+                "answer": {
+                    "description": "The final answer to the cryptic crossword clue - a single string, no explanation.",
+                    "title": "Answer",
+                    "type": "string"
+                }
+            },
+            "required": ["answer"],
+            "title": "parameters",
+            "type": "object"
+        }
+    }
+}, indent=2)}
+
+
+Please respond in JSON format.
+The JSON should contain:
+- "name": the tool call function name.
+- "arguments": the arguments for the tool call.
+
+You should only use one tool at a time!
+You cannot respond to user and use a tool at the same time!
+
+Examples of responses (for the clue "Initially, babies are naked (4)")
+<json>
+{json.dumps({"name": "dictionary_search", "arguments": {"definition": "naked", "pattern": "(4)", "substrings": "B"}}, indent=2)}
+</json>
+
+the tool call response is a list of the 10 closest words obeying the constraints given.
+
+<json>
+{json.dumps({"name": ANSWER_ACTION_NAME, "arguments": {"answer": "BARE"}}, indent=2)}
+</json>
+
+---\n
+"""
+
+
 
 # Do these loads globally, since they are static (don't depend on Agent launches)
 print("Loading Cryptic Crossword data")
@@ -146,113 +226,36 @@ class Agent:
 
         # Iterate through each task
         try: 
-            preamble=f"""Cryptic Crossword clue answering
-
-You may use both reasoning and the following dictionary tool to answer the given clues:
-
-{json.dumps({
-    "type": "function",
-    "function": {
-        "name": SEARCH_ACTION_NAME,
-        "description": "Look up nearest matches to a given definition, given constraints.",
-        "parameters": {
-            "properties": {
-                "definition": {
-                    "description": "The search term, which the responses will be close to.",
-                    "title": "Definition",
-                    "type": "string"
-                },
-                "pattern": {
-                    "description": "The format required for each response in standard notation - e.g. (8) for eight-letter responses.",
-                    "title": "Pattern",
-                    "type": "string"
-                },
-                "substrings": {
-                    "description": "A comma-separated list of strings that must be included in each response.",
-                    "title": "Substrings",
-                    "type": "string"
-                }
-            },
-            "required": ["definition"],
-            "title": "parameters",
-            "type": "object"
-        }
-    }
-}, indent=2)}
-
-The final answer should be returned using the following tool call:
-
-{json.dumps({
-    "type": "function",
-    "function": {
-        "name": ANSWER_ACTION_NAME,
-        "description": "Respond directly to the user with a message instead of calling a tool.",
-        "parameters": {
-            "properties": {
-                "answer": {
-                    "description": "The final answer to the cryptic crossword clue - a single string, no explanation.",
-                    "title": "Answer",
-                    "type": "string"
-                }
-            },
-            "required": ["answer"],
-            "title": "parameters",
-            "type": "object"
-        }
-    }
-}, indent=2)}
-
-
-Please respond in JSON format.
-The JSON should contain:
-- "name": the tool call function name.
-- "arguments": the arguments for the tool call.
-
-You should only use one tool at a time!
-You cannot respond to user and use a tool at the same time!
-
-Examples of responses (for the clue "Initially, babies are naked (4)")
-<json>
-{json.dumps({"name": "dictionary_search", "arguments": {"definition": "naked", "pattern": "(4)", "substrings": "B"}}, indent=2)}
-</json>
-
-the tool call response is a list of the 10 closest words obeying the constraints given.
-
-<json>
-{json.dumps({"name": ANSWER_ACTION_NAME, "arguments": {"answer": "BARE"}}, indent=2)}
-</json>
-
----
-
-"""
-
             result_arr=[]
-            for task_idx in self.task_indices:
-                logger.info(f"Running task {task_idx}...")
+            preamble = task_evaluation_preamble  # See above for this prompt
+            for num_task, task_idx in enumerate(self.task_indices):
+                logger.info(f"Running task[{num_task}] (has id {task_idx})")
                 await updater.update_status(
                     TaskState.working,
-                    new_agent_text_message(f"Running task {task_idx}...")
+                    new_agent_text_message(f"Running task[{num_task}] (has id {task_idx})")
                 )
-                result = self.run_single_task(agent_url, self.dataset[task_idx], preamble)
+                result = await self.run_single_task(agent_url, self.dataset[task_idx], preamble)
                 result_arr.append(result)
 
                 preamble=""  # Use for just the first task
 
-
-        
-            await updater.add_artifact(
-                parts=[
-                    Part(root=TextPart(text="The agent completed the tasks.")),
-                    Part(root=DataPart(data={
-                        # structured assessment results
-                        "results": result_arr,
-                    }))
-                ],
-                name="Result",
-            )
-
+        except Exception as e:
+            print("** Green Agent fail **")
+            print(e)
         finally:
-            self._tool_provider.reset()
+            pass 
+
+        await updater.add_artifact(
+            parts=[
+                Part(root=TextPart(text="The agent completed the tasks.")),
+                Part(root=DataPart(data={
+                    # structured assessment results
+                    "results": result_arr,
+                }))
+            ],
+            name="Result",
+        )
+
 
 
     async def run_single_task(self, agent_url, data_item, preamble="", max_turns=20):
@@ -281,8 +284,8 @@ the tool call response is a list of the 10 closest words obeying the constraints
         response = await agent_turn(
             preamble+f"Cryptic Crossword {orientation}clue: {data_item['clue']}"
         )
-        answer_setter = tidy_up_answer(data_item['answer'])
 
+        answer_setter = tidy_up_answer(data_item['answer'])
         turn, score = 0, 0
         while turn<max_turns:
             try:
