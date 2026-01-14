@@ -1,6 +1,10 @@
+import sys, time
+import json, textwrap
+
 import logging
 from typing import Any
 from pydantic import BaseModel, HttpUrl, ValidationError
+
 from a2a.server.tasks import TaskUpdater
 from a2a.types import Message, TaskState, Part, TextPart, DataPart
 from a2a.utils import get_message_text, new_agent_text_message
@@ -8,7 +12,7 @@ from a2a.utils import get_message_text, new_agent_text_message
 from messenger import Messenger
 
 
-import sys, time, json
+
 cryptic_repo="./src/cryptic-crossword-reasoning-verifier"
 sys.path.append(cryptic_repo)
 from solver import corpora as cryptic_corpora
@@ -33,7 +37,8 @@ class CrypticScore(BaseModel):
 ANSWER_ACTION_NAME = "answer"
 SEARCH_ACTION_NAME = "dictionary_search"
 
-task_evaluation_preamble=f"""Cryptic Crossword clue answering
+task_evaluation_preamble=f"""
+Cryptic Crossword clue answering
 
 You may use both reasoning and the following dictionary tool to answer the given clues:
 
@@ -103,14 +108,14 @@ Examples of responses (for the clue "Initially, babies are naked (4)")
 {json.dumps({"name": "dictionary_search", "arguments": {"definition": "naked", "pattern": "(4)", "substrings": "B"}}, indent=2)}
 </json>
 
-the tool call response is a list of the 10 closest words obeying the constraints given.
+the tool call response is a list of the 20 closest words obeying the constraints given.
 
 <json>
 {json.dumps({"name": ANSWER_ACTION_NAME, "arguments": {"answer": "BARE"}}, indent=2)}
 </json>
 
 ---\n
-"""
+""".lstrip()
 
 
 
@@ -130,6 +135,42 @@ print(f"Loaded Dictionary in {(time.time()-t0):.2f}sec")
 def tidy_up_answer(ans):
     ans = ''.join([a for a in ans.upper() if 'A' <= a <= 'Z'])
     return ans
+
+def get_match_phrase_arr(matches):
+    # [
+    #  {'phrase': 'bird', 'score': np.float32(0.8097365)}, 
+    #  {'phrase': 'duck', 'score': np.float32(0.70401174)}, 
+    #  ...
+    # ]
+    return [ match["phrase"].upper() for match in matches ]
+
+
+if False:
+    # 42-0
+    definition='little bird'
+    matches = crossword_dictionary.find_nearest_words(
+                     definition, k=20, pattern='(10)', substrings=["LEDGE"])
+    print(f"{definition=} {get_match_phrase_arr(matches)}")
+
+    # 42-1
+    definition='star'
+    matches = crossword_dictionary.find_nearest_words(
+                     definition, k=50, pattern='(4)', substrings=[])
+    print(f"{definition=} {get_match_phrase_arr(matches)}")
+
+if False:
+    # 13-0
+    definition='indian city'
+    matches = crossword_dictionary.find_nearest_words(
+                     definition, k=20, pattern='(5)', substrings=[])
+    print(f"{definition=} {get_match_phrase_arr(matches)}")  # Works
+
+if True:
+    # 1-0
+    definition='indian city'
+    matches = crossword_dictionary.find_nearest_words(
+                     definition, k=20, pattern='(5)', substrings=[])
+    print(f"{definition=} {get_match_phrase_arr(matches)}")  # Works
 
 
 class Agent:
@@ -211,8 +252,9 @@ class Agent:
             return
 
         ## At this point, the Green Agent (evaluator) is "running", with configuration 'request.config'
+        # And the task data is available at self.dataset[] for self.task_indices[]
 
-        # Replace example code below with your agent logic
+        ## NB:
         # Use request.participants to get participant agent URLs by role
         # Use request.config for assessment parameters
 
@@ -234,10 +276,10 @@ class Agent:
                     TaskState.working,
                     new_agent_text_message(f"Running task[{num_task}] (has id {task_idx})")
                 )
-                result = await self.run_single_task(agent_url, self.dataset[task_idx], preamble)
+                result = await self.run_single_task(agent_url, updater, self.dataset[task_idx], preamble)
                 result_arr.append(result)
 
-                preamble=""  # Use for just the first task
+                preamble = ""  # Use for just the first task
 
         except Exception as e:
             print("** Green Agent fail **")
@@ -256,9 +298,41 @@ class Agent:
             name="Result",
         )
 
+    def parse_json_segment(self, response):
+        #logger.info(f"Attempting to parse : {response}")
+        for tag_start in [ '<json>', '```json' ]:
+            json_start = response.rfind(tag_start)
+            if json_start<0:
+                continue
+            json_start += len(tag_start)
+            #print(f"found {json_start=}")
+            for tag_end in [ '</json>', '```' ]:
+                json_end  = response.rfind(tag_end, json_start)
+                if json_end>0: 
+                    #print(f"found {json_end=}")
+                    break
+            if json_end<0:
+                json_end = len(response)  # Maximum extent...
+            break # Finished
+
+        if json_start<0:  # Failure!
+            logger.warning(f"No JSON segment found in : {response}")
+            return dict()
+
+        try:
+            json_segment = response[json_start:json_end]
+            #logger.info(f"JSON segment : {json_segment}")
+            action_dict = json.loads(json_segment)  
+
+        except (json.JSONDecodeError, KeyError) as e:
+            # If parsing fails, treat the response as plain text to user
+            logger.warning(f"Failed to parse agent response as JSON: {e}")
+            return dict()
+
+        return action_dict
 
 
-    async def run_single_task(self, agent_url, data_item, preamble="", max_turns=20):
+    async def run_single_task(self, agent_url, updater, data_item, preamble="", max_turns=20):
         #print(data_item)
         async def agent_turn(prompt: str) -> str:
             response = await self.messenger.talk_to_agent(
@@ -281,43 +355,53 @@ class Agent:
         orientation = ''
         if 'orientation' in data_item:
             orientation = data_item['orientation']+' '
-        response = await agent_turn(
-            preamble+f"Cryptic Crossword {orientation}clue: {data_item['clue']}"
-        )
-
+        clue_prompt = f"""Cryptic Crossword {orientation}clue: \"{data_item['clue']}\""""
         answer_setter = tidy_up_answer(data_item['answer'])
+
+        logger.info(f"{agent_url}: {clue_prompt=} {answer_setter=}")
+        response = await agent_turn( preamble+clue_prompt )
+
         turn, score = 0, 0
         while turn<max_turns:
-            try:
-                action_dict = json.loads(response)
+            action_dict = self.parse_json_segment(response)
+            action_name = action_dict.get("name", '')
 
-                if action_dict["name"] == ANSWER_ACTION_NAME:
-                    answer_solver = action_dict["arguments"]["answer"]
-                    answer_solver = tidy_up_answer(answer_solver)
-                    if answer_solver == answer_setter:
-                        score = 1  # Success!
-                    break
+            if action_name == ANSWER_ACTION_NAME:
+                answer_solver = action_dict["arguments"]["answer"]
+                answer_solver = tidy_up_answer(answer_solver)
+                if answer_solver == answer_setter:
+                    score = 1  # Success!
+                break
 
-                if action_dict["name"] == SEARCH_ACTION_NAME:
-                    definition = action_dict["arguments"]["definition"]
-                    pattern = action_dict["arguments"].get("pattern", None)
-                    substrings = action_dict["arguments"].get("substrings", "").split(',')
+            elif action_name == SEARCH_ACTION_NAME:
+                definition = action_dict["arguments"]["definition"]
+                pattern = action_dict["arguments"].get("pattern", None)
+                substrings = action_dict["arguments"].get("substrings", "").split(',')  # An array of strings
 
-                    nearest_matches = crossword_dictionary.find_nearest_words(
-                        definition, k=10, pattern=pattern, substrings=substrings)
-                    
-                    # How do we return the tool call result?
-                    response = await agent_turn(f"""
+                print(f"** {SEARCH_ACTION_NAME} response : {definition=} {pattern=} {substrings=} **")
+                nearest_matches = crossword_dictionary.find_nearest_words(
+                    definition, k=20, pattern=pattern, substrings=substrings)
+                #print(nearest_matches)
+                # [
+                #  {'phrase': 'bird', 'score': np.float32(0.8097365)}, 
+                #  {'phrase': 'duck', 'score': np.float32(0.70401174)}, 
+                #  ...
+                # ]
+                nearest_match_phrase_arr = [ match["phrase"].upper() for match in nearest_matches ]
+
+                # Return the tool call result
+                result_str = f"""
 <json>
-{json.dumps({"nearest_matches": nearest_matches}, indent=2)}
+{json.dumps({"nearest_matches": nearest_match_phrase_arr}, indent=2)}
 </json>
-""".trim())
+""".strip()
+                print(result_str)
 
+                response = await agent_turn(result_str)
+
+            else:
+                response = await agent_turn("Please continue... (You must use function calls within <json></json> tags)")
                 # Otherwise, just swallow the bad tool call... 
-
-            except (json.JSONDecodeError, KeyError) as e:
-                # If parsing fails, treat the response as plain text to user
-                logger.warning(f"Failed to parse agent response as JSON: {e}")
 
             turn+=1
 

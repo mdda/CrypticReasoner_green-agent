@@ -12,7 +12,9 @@ dependencies = [
     # OTOH, the dictionary tool requires vector store...
     "fasttext==0.9.3",
     "huggingface_hub==1.3.1",
-    "levenshtein==0.27.3"
+    "levenshtein==0.27.3",
+
+    "google-adk==1.22.1", # For Purple Basic agent (uses Gemini-Flash-2.5)
 ]
 
 [project.optional-dependencies]

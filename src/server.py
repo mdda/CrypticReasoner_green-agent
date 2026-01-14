@@ -1,6 +1,8 @@
 import argparse
 import uvicorn
 
+import textwrap
+
 from a2a.server.apps import A2AStarletteApplication
 from a2a.server.request_handlers import DefaultRequestHandler
 from a2a.server.tasks import InMemoryTaskStore
@@ -30,19 +32,22 @@ def main():
         tags=["crypticreasoner"],
         # See : https://github.com/RDI-Foundation/agentbeats-tutorial/blob/main/scenarios/tau2/tau2_evaluator.py#L452
         #  Sending this JSON via the A2A inspector, launches the Green Agent ...
-        examples=["""
-{
-  "participants": {
-    "cryptic_solver": "https://cryptic-solver.example.com:443"
-  },
-  "config": {
-    "dataset": "cryptonite",
-    "split": "val",
-    "num_tasks": 2,
-    "seed": 42
-  }
-}
-"""]
+        examples=[textwrap.dedent("""
+            {
+                "participants": {
+                    "cryptic_solver": "http://localhost:9019"
+                },
+                "config": {
+                    "dataset": "cryptonite",
+                    "split": "val",
+                    "num_tasks": 2,
+                    "seed": 7
+                }
+            }
+            """).strip()]
+        # http://127.0.0.1:9019
+        # https://cryptic-solver.example.com:443
+
     )
 
     agent_card = AgentCard(
