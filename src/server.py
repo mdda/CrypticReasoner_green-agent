@@ -41,7 +41,7 @@ def main():
                     "dataset": "cryptonite",
                     "split": "val",
                     "num_tasks": 2,
-                    "seed": 7
+                    "seed": 42
                 }
             }
             """).strip()]

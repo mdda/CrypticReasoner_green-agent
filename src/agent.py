@@ -145,12 +145,18 @@ def get_match_phrase_arr(matches):
     return [ match["phrase"].upper() for match in matches ]
 
 
-if False:
-    # 42-0
+if True:
+    # 42-0  = "little bird to dart across sill (10)"
+    definition='sill'
+    matches = crossword_dictionary.find_nearest_words(
+                     definition, k=20, )
+    print(f"{definition=} {get_match_phrase_arr(matches)}")
+
     definition='little bird'
     matches = crossword_dictionary.find_nearest_words(
                      definition, k=20, pattern='(10)', substrings=["LEDGE"])
     print(f"{definition=} {get_match_phrase_arr(matches)}")
+    # FLEDGELING (little bird) = "FLING" (to dart) outside (across) "LEDGE" (sill)
 
     # 42-1
     definition='star'
@@ -159,18 +165,21 @@ if False:
     print(f"{definition=} {get_match_phrase_arr(matches)}")
 
 if False:
-    # 13-0
-    definition='indian city'
+    # 88-0  = "sides from elsewhere overwhelming crack team (6)"
+    definition='team'
     matches = crossword_dictionary.find_nearest_words(
-                     definition, k=20, pattern='(5)', substrings=[])
-    print(f"{definition=} {get_match_phrase_arr(matches)}")  # Works
+                     definition, k=20, pattern='(6)', substrings=["QUIP"])
+    print(f"{definition=} {get_match_phrase_arr(matches)}")  
+    # E+E (sides of ELSEWHERE) with "QUIP" (crack) inside = EQUIPE (team) ... not quite!
+ 
+    # 88-1 = "is series of lectures spanning two days treated formally? (10)"
+    definition='treated formally'
+    matches = crossword_dictionary.find_nearest_words(
+                     definition, k=20, pattern='(10)', substrings=["COURSE"])  
+    print(f"{definition=} {get_match_phrase_arr(matches)}")  
+    # "IS" + "COURSE" (series of lectures) inside (spanning) D+D (two days) = DISCOURSED (treated formally)
 
-if True:
-    # 1-0
-    definition='indian city'
-    matches = crossword_dictionary.find_nearest_words(
-                     definition, k=20, pattern='(5)', substrings=[])
-    print(f"{definition=} {get_match_phrase_arr(matches)}")  # Works
+
 
 
 class Agent:
