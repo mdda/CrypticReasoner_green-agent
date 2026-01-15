@@ -1,5 +1,5 @@
 [project]
-name = "crypticreasoner-setter"
+name = "crypticreasoner_setter"
 version = "0.1.0"
 description = "An A2A agent that marks answers to Cryptic Crossword questions, and allows dictionary tool use"
 readme = "README.md"
