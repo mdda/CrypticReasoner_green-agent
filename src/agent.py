@@ -20,7 +20,7 @@ from solver import dataset as cryptic_dataset
 
 
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("cryptic_setter")
+logger = logging.getLogger("crypticreasoning_setter")
 
 class EvalRequest(BaseModel):
     """Request format sent by the AgentBeats platform to green agents."""
@@ -197,7 +197,7 @@ if False:
 
 class Agent:
     # Fill in: list of required participant roles, e.g. ["pro_debater", "con_debater"]
-    required_roles: list[str] = ["cryptic_solver"]
+    required_roles: list[str] = ["crypticreasoning_solver"]
     # Fill in: list of required config keys, e.g. ["topic", "num_rounds"]
     required_config_keys: list[str] = []  # We have fall-back values for each of these
 
@@ -280,7 +280,7 @@ class Agent:
         # Use request.participants to get participant agent URLs by role
         # Use request.config for assessment parameters
 
-        agent_url = str(request.participants["cryptic_solver"])
+        agent_url = str(request.participants["crypticreasoning_solver"])
         logger.info(f"Running {len(self.task_indices)} tasks")
 
         await updater.update_status(

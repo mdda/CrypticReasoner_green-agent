@@ -26,7 +26,7 @@ def main():
     # See: https://a2a-protocol.org/latest/tutorials/python/3-agent-skills-and-card/
     
     skill = AgentSkill(
-        id="cryptic_setter",
+        id="crypticreasoning_setter",
         name="Cryptic Crossword Setter",
         description="Emits cryptic crossword questions, and mark answers",
         tags=["crypticreasoner"],
@@ -35,7 +35,7 @@ def main():
         examples=[textwrap.dedent("""
             {
                 "participants": {
-                    "cryptic_solver": "http://localhost:9019"
+                    "crypticreasoner_solver": "http://localhost:9019"
                 },
                 "config": {
                     "dataset": "cryptonite",
