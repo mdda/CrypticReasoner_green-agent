@@ -428,6 +428,7 @@ class Agent:
             turn+=1
 
         return dict(
-            score=score, critique="",
+            score=score, 
+            critique="",
         )
 

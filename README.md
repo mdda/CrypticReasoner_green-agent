@@ -157,7 +157,7 @@ Once the workflow completes, find your Docker image in the Packages section (rig
 
 ## Citing this work
 
-The Cryptic Crossword utilities, etc, are derived from the codebase associated from this work:
+The Cryptic Crossword utilities, etc, are derived from the [codebase associated from this work](https://github.com/mdda/cryptic-crossword-reasoning-verifier/):
 
 ```bibtex
 @inproceedings{andrews-cryptic-reasoning-2025,
