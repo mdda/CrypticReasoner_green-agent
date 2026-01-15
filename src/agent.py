@@ -46,7 +46,7 @@ You may use both reasoning and the following dictionary tool to answer the given
     "type": "function",
     "function": {
         "name": SEARCH_ACTION_NAME,
-        "description": "Look up nearest matches to a given definition, given constraints.",
+        "description": "Look up top 10 nearest matches to a given definition, given constraints.",
         "parameters": {
             "properties": {
                 "definition": {
@@ -147,38 +147,51 @@ def get_match_phrase_arr(matches):
 
 if True:
     # 42-0  = "little bird to dart across sill (10)"
+    #          FLEDGELING (little bird) = "FLING" (to dart) outside (across) "LEDGE" (sill)
     definition='sill'
     matches = crossword_dictionary.find_nearest_words(
-                     definition, k=20, )
+                     definition, k=10, )
     print(f"{definition=} {get_match_phrase_arr(matches)}")
+    # ['SILL', 'STRAINING SILL', 'SILLS', 'REAR WINDOW', 'WINDOW LEDGES', 'WALL PLATE', 
+    #  'LAMP CHIMNEY', 'WINDOW *LEDGE*', 'WET PLATE', 'CHIMNEY']
 
     definition='little bird'
     matches = crossword_dictionary.find_nearest_words(
-                     definition, k=20, pattern='(10)', substrings=["LEDGE"])
+                     definition, k=10, pattern='(10)', substrings=["LEDGE"])
     print(f"{definition=} {get_match_phrase_arr(matches)}")
-    # FLEDGELING (little bird) = "FLING" (to dart) outside (across) "LEDGE" (sill)
+    # [*'FLEDGELING'*, 'PLEDGEABLE', 'LEDGERLINE', 'LEDGERBAIT']
 
-    # 42-1
+    # 42-1  = "rising star, runner (4)" (down clue)
+    #         reversal (rising+down clue) of "NOVA" (star) = "AVON" (a runner / river!) 
     definition='star'
     matches = crossword_dictionary.find_nearest_words(
                      definition, k=50, pattern='(4)', substrings=[])
     print(f"{definition=} {get_match_phrase_arr(matches)}")
+    # ['STAR', 'DIVA', 'IDOL', 'HERO', 'FAME', 'STUD', 'HUNK', 'GIRL', 'RING', 'BEAU', 'MOON', 
+    # 'CAST', 'TRIO', 'AFRO', 'CLUB', 'SUNS', 'GLAM', 'ICON', 'FANS', 'ACES', 'SHOT', 'SHOW', 
+    # 'BUFF', 'HALO', 'CHEF', 'FILM', 'LADY', 'TEEN', 'EMMY', 'WEDS', 'WINS', 'LION', 'BABE', 
+    # 'PROM', 'GOER', 'PAIR', 'BALL', 'SEXY', 'TEAM', 'GALA', *'NOVA'*, 'CAPE', 'FLOP', 'TOON', 
+    # 'MUSE', 'PHOT', 'ROCK', 'HITS', 'VAMP', 'FAVE']
+
+    
 
 if False:
     # 88-0  = "sides from elsewhere overwhelming crack team (6)"
+    #         E+E (sides of ELSEWHERE) with "QUIP" (crack) inside = EQUIPE (team)
     definition='team'
     matches = crossword_dictionary.find_nearest_words(
-                     definition, k=20, pattern='(6)', substrings=["QUIP"])
+                     definition, k=10, pattern='(6)', substrings=["QUIP"])
     print(f"{definition=} {get_match_phrase_arr(matches)}")  
-    # E+E (sides of ELSEWHERE) with "QUIP" (crack) inside = EQUIPE (team) ... not quite!
+    # ['EQUIPS', 'QUIPOS', 'QUIPUS']  # Oooof ... not quite!
  
     # 88-1 = "is series of lectures spanning two days treated formally? (10)"
+    #        "IS" + "COURSE" (series of lectures) inside (spanning) D+D (two days) = DISCOURSED (treated formally)
     definition='treated formally'
     matches = crossword_dictionary.find_nearest_words(
-                     definition, k=20, pattern='(10)', substrings=["COURSE"])  
+                     definition, k=10, pattern='(10)', substrings=["COURSE"])  
     print(f"{definition=} {get_match_phrase_arr(matches)}")  
-    # "IS" + "COURSE" (series of lectures) inside (spanning) D+D (two days) = DISCOURSED (treated formally)
-
+    # [*'DISCOURSED'*, 'RACECOURSE', 'DAMPCOURSE', 'FORECOURSE', 'DISCOURSES', 
+    # 'CONCOURSES', 'COURSEWORK', 'GOLFCOURSE', 'LOBSCOURSE', 'DISCOURSER']
 
 
 
@@ -389,7 +402,7 @@ class Agent:
 
                 print(f"** {SEARCH_ACTION_NAME} response : {definition=} {pattern=} {substrings=} **")
                 nearest_matches = crossword_dictionary.find_nearest_words(
-                    definition, k=20, pattern=pattern, substrings=substrings)
+                    definition, k=10, pattern=pattern, substrings=substrings)
                 #print(nearest_matches)
                 # [
                 #  {'phrase': 'bird', 'score': np.float32(0.8097365)}, 

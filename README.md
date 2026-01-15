@@ -4,6 +4,28 @@ Code for the [A2A (Agent-to-Agent)](https://a2a-protocol.org/latest/)
 CrypticReasoner evaluation green agents compatible 
 with the [AgentBeats](https://agentbeats.dev) platform.
 
+## Abstract
+
+Cryptic crossword clues are challenging language tasks for which new test sets 
+are released daily by major newspapers on a global basis. Each cryptic clue contains 
+both the definition of the answer to be placed in the crossword grid (in common with regular crosswords), 
+and 'wordplay' that proves that the answer is correct 
+(i.e. a human solver can be confident that an answer is correct without needing crossing words as confirmation). 
+
+This green (evaluation) agent (for the AgentBeats platform) provides a test-bed for 
+evaluation of Cryptic Crossword solver agents.  In addition to providing the questions 
+(from the [Cryptonite Dataset](https://github.com/aviaefrat/cryptonite) of 
+Times/Telegraph cryptic crossword clues/answers), this green agent also provides a 
+`dictionary_search` tool, that allows purple (solver) agents to look up potential answers,
+subject to constraints (definition, word-length(s) and substrings).  This makes the 
+task more approachable by LLMs, since (even today) they have significant problems with
+counting letters, and doing anagrams.
+
+Even with the `dictionary_search` tool, however, these Cryptic Crossword puzzles are
+tough : simply searching for the `definition` word will often not include the actual answer
+within the top 10 returned results - using the `wordplay` to suggest substrings will narrow the 
+search substantially.  This requires some reasoning...
+
 
 ## Project Structure
 
